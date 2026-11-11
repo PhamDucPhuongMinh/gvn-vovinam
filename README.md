@@ -38,11 +38,13 @@ Máy chủ ký yêu cầu tải ảnh; khóa bí mật không gửi về trình 
 ## Triển khai Netlify
 
 1. Đưa repository lên tài khoản Git của bạn và kết nối trong Netlify.
-2. Netlify đọc `netlify.toml`: build `npm run build`, output `.next`, Node.js 22. Next.js được hỗ trợ qua adapter tự động của Netlify.
+2. Netlify đọc `netlify.toml`: build `npm run build`, output `.next`, Node.js 22. Dự án khai báo rõ `@netlify/plugin-nextjs` để tạo server functions và routing cho Next.js.
 3. Trong Environment Variables, khai báo các biến database và đăng nhập nêu trên, cùng biến Cloudinary nếu dùng tải ảnh. Không đặt các biến bí mật dưới tiền tố `NEXT_PUBLIC_`.
 4. Deploy và kiểm tra: trang chủ, đăng ký học thử, đăng nhập, thao tác quản trị, dữ liệu tồn tại sau lần deploy tiếp theo, đăng xuất và truy cập API khi chưa đăng nhập.
 
 Cấu hình tài khoản thực tế qua biến môi trường của bạn; không commit hoặc đưa các khóa này vào log. Free tier có giới hạn; theo dõi usage của các dịch vụ. Website không dùng email hoặc thanh toán online.
+
+Nếu build thành công nhưng tất cả route trả 404: kiểm tra log có chạy `@netlify/plugin-nextjs` và đóng gói server function hay chưa. Không đặt `NETLIFY_NEXT_PLUGIN_SKIP=true` hoặc `1`. Giữ publish directory `.next`, không thêm rewrite SPA về `/index.html`. Sau khi sửa cấu hình, deploy lại từ nhánh `main`.
 
 ## Quy tắc tài chính
 

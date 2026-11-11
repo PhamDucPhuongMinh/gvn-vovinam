@@ -14,3 +14,7 @@ Automated checks cover empty initialization, tuition allocation and duplicate pr
 All 43 tests and the production build pass after removing the supplied dataset. A project source scan found no remaining supplied student names, fixed source totals or old seed references. Generated bundles were cleared and rebuilt.
 
 Browser behavior previously checked includes rich text formatting, image/video insertion, HTML submission and video thumbnails. Cloudinary uploads are not triggered by automated checks.
+
+## Netlify server adapter
+
+The supplied production log showed a successful Next.js build followed by uploading `.next` with zero server functions and no adapter hooks. The project now explicitly installs `@netlify/plugin-nextjs` and declares it in `netlify.toml`. The application production build passes; adapter packaging and live route behavior must be confirmed on the subsequent Netlify deployment.
