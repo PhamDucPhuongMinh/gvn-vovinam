@@ -1,0 +1,20 @@
+export const DEFAULT_TUITION = 400_000;
+export const BELTS = [
+  "Nhập môn",
+  "Lam đai",
+  "Lam đai I",
+  "Lam đai II",
+  "Lam đai III",
+  "Hoàng đai",
+  "Hoàng đai I",
+  "Hoàng đai II",
+  "Hoàng đai III",
+  "Chuẩn Hồng đai",
+  "Hồng đai I",
+  "Hồng đai II",
+  "Hồng đai III",
+  "Hồng đai IV",
+  "Hồng đai V",
+  "Hồng đai VI",
+  "Bạch đai Chưởng môn",
+] as const;
