@@ -263,7 +263,7 @@ export default function Dashboard() {
       (filter === "all" || filter === "review"
         ? filter !== "review" || !!e.review
         : e.kind === filter) &&
-      `${e.description} ${e.kind === "legacy_margin" ? "Lợi nhuận bán hàng lịch sử" : e.category}`
+      `${e.description} ${e.notes || ""} ${e.kind === "legacy_margin" ? "Lợi nhuận bán hàng lịch sử" : e.category}`
         .toLocaleLowerCase("vi")
         .includes(search.toLocaleLowerCase("vi")),
   );
@@ -286,6 +286,7 @@ export default function Dashboard() {
         "Giá nhập",
         "Đã hủy",
         "Ghi chú",
+        "Thông tin cần bổ sung",
       ],
       ...visibleEntries.map((e) => [
         e.month,
@@ -296,6 +297,7 @@ export default function Dashboard() {
         e.amount,
         e.cost || "",
         e.voided ? "Có" : "Không",
+        e.notes || "",
         e.review || "",
       ]),
     ]);
@@ -978,6 +980,11 @@ export default function Dashboard() {
                             <td>{displayDate(e.date)}</td>
                             <td>
                               <b style={{ fontWeight: 500 }}>{e.description}</b>
+                              {e.notes && (
+                                <small className="transaction-notes">
+                                  Ghi chú: {e.notes}
+                                </small>
+                              )}
                               {e.kind === "sale" && Number(e.cost) > 0 && (
                                 <small
                                   style={{
@@ -1685,6 +1692,7 @@ export default function Dashboard() {
                               {(
                                 [
                                   ["description", "Nội dung"],
+                                  ["notes", "Ghi chú"],
                                   ["category", "Danh mục"],
                                   ["amount", "Số tiền"],
                                   ["cost", "Giá nhập"],

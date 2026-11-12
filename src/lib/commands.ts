@@ -169,7 +169,8 @@ export function applyCommand(s: ClubState, raw: unknown) {
         totalAmount: money.optional(),
         amounts: z.array(money).min(1).max(24).optional(),
         date,
-        description: text,
+        description: text.default(""),
+        notes: text.default(""),
       })
       .parse(d);
     const student = s.students.find((x) => x.id === value.studentId);
@@ -242,6 +243,7 @@ export function applyCommand(s: ClubState, raw: unknown) {
       kind: "tuition",
       category: "Học phí",
       description: value.description || `Học phí ${student.name}`,
+      notes: value.notes,
       studentId: student.id,
       amount,
       date: value.date,
@@ -275,6 +277,7 @@ export function applyCommand(s: ClubState, raw: unknown) {
         kind: z.enum(["income", "expense", "purchase", "sale"]),
         category: required,
         description: required,
+        notes: text.optional(),
         amount: money,
         date,
         month,
@@ -307,6 +310,7 @@ export function applyCommand(s: ClubState, raw: unknown) {
         ]),
         category: required,
         description: required,
+        notes: text.optional(),
         amount: z.number().int().min(-1_000_000_000).max(1_000_000_000),
         date: z.union([date, z.literal("")]),
         month,
@@ -392,6 +396,7 @@ export function applyCommand(s: ClubState, raw: unknown) {
       kind: value.kind,
       category: value.category,
       description: value.description,
+      notes: value.notes ?? edited.notes,
       amount: value.amount,
       date: value.date,
       month: value.month,

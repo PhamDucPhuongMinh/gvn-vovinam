@@ -833,6 +833,12 @@ label {
   font-weight: 700;
   white-space: nowrap;
 }
+.transaction-notes {
+  display: block;
+  color: var(--muted);
+  white-space: pre-wrap;
+  margin-top: 4px;
+}
 .report-month-field {
   margin-bottom: 0;
 }

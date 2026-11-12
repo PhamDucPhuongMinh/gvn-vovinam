@@ -533,7 +533,14 @@ export default function AdminDialog({
                   )}
                 </p>
                 {input("date", "Ngày nhận tiền", "date", today())}
-                {area("description", "Ghi chú", 2)}
+                {input("description", "Nội dung", "text", "", false)}
+                <p className="field-hint">
+                  Để trống để tự tạo nội dung “Học phí{" "}
+                  {s.students.find((student) => student.id === payStudent)
+                    ?.name || "[tên võ sinh]"}
+                  ”.
+                </p>
+                {area("notes", "Ghi chú", 2)}
                 <div className="admin-note">
                   Tổng dự kiến: <b>{money(payAmount)}</b>. Thu đủ từng tháng,
                   không thu từng phần. Giao dịch trùng tháng đã thanh toán sẽ bị
@@ -635,6 +642,7 @@ export default function AdminDialog({
                 </select>
               </label>
               {input("description", "Nội dung")}
+              {area("notes", "Ghi chú", 2)}
               {entryKind === "expense" ? (
                 <label>
                   <FieldLabel>Danh mục chi phí</FieldLabel>

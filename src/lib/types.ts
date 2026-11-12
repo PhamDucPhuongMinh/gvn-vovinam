@@ -24,6 +24,7 @@ export type Entry = {
     "tuition" | "income" | "expense" | "purchase" | "sale" | "legacy_margin";
   category: string;
   description: string;
+  notes?: string;
   amount: number;
   date: string;
   month: string;

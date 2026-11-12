@@ -10,6 +10,46 @@ import {
 } from "../src/lib/finance";
 import { splitTuition } from "../src/lib/tuition";
 
+test("tuition notes remain separate from default and custom descriptions, including edits", () => {
+  const state = createFixture();
+  const student = state.students[0];
+  for (const [period, description] of [
+    ["2027-03", ""],
+    ["2027-04", "Nội dung riêng"],
+  ]) {
+    applyCommand(state, {
+      action: "pay",
+      data: {
+        studentId: student.id,
+        period,
+        months: 1,
+        totalAmount: 400000,
+        date: "2027-03-01",
+        description,
+        notes: "Phụ huynh chuyển khoản",
+      },
+    });
+    const entry = state.entries[0];
+    assert.equal(entry.description, description || `Học phí ${student.name}`);
+    assert.equal(entry.notes, "Phụ huynh chuyển khoản");
+    applyCommand(state, {
+      action: "edit_entry",
+      data: {
+        ...entry,
+        entryId: entry.id,
+        reason: "Bổ sung ghi chú",
+        notes: "Đã đối soát",
+        periods: [{ month: period, amount: 400000 }],
+      },
+    });
+    const updated = state.entries.find((e) => e.id === entry.id)!;
+    assert.equal(updated.description, entry.description);
+    assert.equal(updated.notes, "Đã đối soát");
+    assert.equal(state.audit[0].before?.notes, "Phụ huynh chuyển khoản");
+    assert.equal(state.audit[0].after?.notes, "Đã đối soát");
+  }
+});
+
 test("total tuition covers consecutive months exactly, including VND remainder", () => {
   const s = createFixture();
   const studentId = s.students.find((s) => s.status === "active")!.id;
