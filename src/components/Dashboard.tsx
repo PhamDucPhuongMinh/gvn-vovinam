@@ -1,5 +1,7 @@
 "use client";
+import SearchSelect from "./SearchSelect";
 import { useCallback, useEffect, useState } from "react";
+import { unpaidStudents } from "@/lib/unpaid-students";
 import FieldLabel from "./FieldLabel";
 import Link from "next/link";
 import VideoThumbnail from "./VideoThumbnail";
@@ -248,6 +250,7 @@ export default function Dashboard() {
     active = studentsByJoined.filter((st) => st.status === "active"),
     student = (id?: string) => s.students.find((st) => st.id === id);
   const monthBills = s.bills.filter((b) => b.month === period);
+  const unpaidLearners = unpaidStudents(s, period);
   const unpaid = monthBills.filter((b) => outstanding(s, b) > 0);
   const leads = s.leads.filter((l) => l.createdAt.slice(0, 7) === period);
   const visibleStudents = studentsByJoined.filter(
@@ -809,6 +812,102 @@ export default function Dashboard() {
               <section className="panel">
                 <div className="panel-head">
                   <div>
+                    <h2>Võ sinh chưa đóng học phí · {monthLabel(period)}</h2>
+                    <p>
+                      {unpaidLearners.length} võ sinh · Công nợ đã lập{" "}
+                      {money(
+                        unpaidLearners.reduce((sum, row) => sum + row.debt, 0),
+                      )}
+                    </p>
+                  </div>
+                </div>
+                {unpaidLearners.length ? (
+                  <div className="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Võ sinh</th>
+                          <th>Phụ huynh / Liên hệ</th>
+                          <th>Còn phải đóng</th>
+                          <th>Trạng thái</th>
+                          <th>Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {unpaidLearners.map(
+                          ({ student: learner, bill, debt }) => (
+                            <tr key={learner.id}>
+                              <td>
+                                <StudentName student={learner} />
+                              </td>
+                              <td>
+                                {learner.parent || "—"}
+                                {learner.phone && (
+                                  <div>
+                                    <a href={`tel:${learner.phone}`}>
+                                      {learner.phone}
+                                    </a>
+                                  </div>
+                                )}
+                              </td>
+                              <td className={bill ? "negative" : "muted"}>
+                                {bill ? money(debt) : "Chưa lập khoản phải thu"}
+                              </td>
+                              <td>
+                                <Badge
+                                  color={
+                                    !bill
+                                      ? ""
+                                      : isOverdue(
+                                            period,
+                                            s.settings.dueDay,
+                                            today(),
+                                          )
+                                        ? "red"
+                                        : "orange"
+                                  }
+                                >
+                                  {!bill
+                                    ? "Chưa lập khoản phải thu"
+                                    : isOverdue(
+                                          period,
+                                          s.settings.dueDay,
+                                          today(),
+                                        )
+                                      ? "Quá hạn"
+                                      : "Chưa đóng"}
+                                </Badge>
+                              </td>
+                              <td>
+                                <button
+                                  className="table-action"
+                                  disabled={busy}
+                                  onClick={() =>
+                                    edit("payment", {
+                                      studentId: learner.id,
+                                      month: period,
+                                    })
+                                  }
+                                >
+                                  Thu học phí
+                                </button>
+                              </td>
+                            </tr>
+                          ),
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <Empty
+                    title="Không có võ sinh chưa đóng học phí"
+                    description="Không có khoản còn thiếu hoặc võ sinh chưa lập khoản phải thu trong tháng này."
+                  />
+                )}
+              </section>
+              <section className="panel">
+                <div className="panel-head">
+                  <div>
                     <h2>Học phí tháng {monthLabel(period)}</h2>
                     <p>Mức chung {money(s.settings.monthlyFee)} / tháng</p>
                   </div>
@@ -935,7 +1034,7 @@ export default function Dashboard() {
                       placeholder="Tìm nội dung hoặc danh mục…"
                     />
                   </div>
-                  <select
+                  <SearchSelect
                     aria-label="Loại giao dịch"
                     style={{
                       width: "auto",
@@ -956,7 +1055,7 @@ export default function Dashboard() {
                     <option value="income">Tiền khác</option>
                     <option value="expense">Chi phí</option>
                     <option value="review">Cần bổ sung</option>
-                  </select>
+                  </SearchSelect>
                 </div>
                 {visibleEntries.length ? (
                   <div className="table-wrap">
@@ -1212,7 +1311,7 @@ export default function Dashboard() {
                             {l.notes || "—"}
                           </td>
                           <td>
-                            <select
+                            <SearchSelect
                               aria-label={`Trạng thái đăng ký ${l.name}`}
                               value={l.status}
                               style={{ fontSize: 11, margin: 0 }}
@@ -1233,7 +1332,7 @@ export default function Dashboard() {
                               ].map((v) => (
                                 <option key={v}>{v}</option>
                               ))}
-                            </select>
+                            </SearchSelect>
                           </td>
                           <td>
                             <button

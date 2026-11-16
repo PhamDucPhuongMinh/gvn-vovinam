@@ -1,4 +1,5 @@
 "use client";
+import SearchSelect from "./SearchSelect";
 import { useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { Node, mergeAttributes, type JSONContent } from "@tiptap/core";
@@ -258,7 +259,7 @@ export default function RichTextEditor({
         role="toolbar"
         aria-label="Định dạng nội dung"
       >
-        <select
+        <SearchSelect
           aria-label="Kiểu đoạn văn"
           value={
             editor.isActive("heading", { level: 2 })
@@ -280,8 +281,8 @@ export default function RichTextEditor({
           <option value="p">Đoạn văn</option>
           <option value="h2">Tiêu đề lớn</option>
           <option value="h3">Tiêu đề nhỏ</option>
-        </select>
-        <select
+        </SearchSelect>
+        <SearchSelect
           aria-label="Cỡ chữ"
           value={editor.getAttributes("textStyle").fontSize || "16px"}
           onChange={(e) =>
@@ -293,7 +294,7 @@ export default function RichTextEditor({
               {n}px
             </option>
           ))}
-        </select>
+        </SearchSelect>
         {tool(
           "In đậm",
           <Bold size={16} />,

@@ -18,3 +18,8 @@ Browser behavior previously checked includes rich text formatting, image/video i
 ## Netlify server adapter
 
 The supplied production log showed a successful Next.js build followed by uploading `.next` with zero server functions and no adapter hooks. The project now explicitly installs `@netlify/plugin-nextjs` and declares it in `netlify.toml`. The application production build passes; adapter packaging and live route behavior must be confirmed on the subsequent Netlify deployment.
+
+## Searchable selects and unpaid learners
+
+- All application select controls now share a react-select wrapper with label/value search, Vietnamese accent normalization, form values and keyboard navigation. Browser QA on a temporary fixture verified searching by a value substring, choosing with Enter, submitting the original value and searching an accented label with unaccented input. The fixture was removed; no database writes were made.
+- The monthly unpaid list separates outstanding bills from eligible learners without bills, excludes paid/waived bills and future learners, and preserves outstanding debts for inactive learners. Automated coverage checks these rules.

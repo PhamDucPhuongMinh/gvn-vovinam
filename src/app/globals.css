@@ -2501,7 +2501,7 @@ tr:last-child td {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
-  .result-row > select:first-child {
+  .result-row > .search-select:first-child {
     grid-column: 1/-1;
   }
   .result-row > .table-action {
@@ -2790,12 +2790,12 @@ tr:last-child td {
   opacity: 0.35;
   cursor: not-allowed;
 }
-.rich-toolbar select {
+.rich-toolbar .search-select {
   width: auto;
   min-height: 34px;
   margin: 0;
   font-size: 11px;
-  padding: 5px 8px;
+  min-width: 110px;
 }
 .rich-toolbar .rich-color {
   margin: 0;
@@ -3076,4 +3076,38 @@ tr:last-child td {
 }
 .article-video figcaption a {
   color: var(--blue);
+}
+
+/* Searchable selection controls keep their search input independent of form inputs. */
+.search-select {
+  min-width: 0;
+  margin-top: 7px;
+}
+.search-select .search-select__input-container input {
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font: inherit !important;
+}
+.search-select__menu-portal input {
+  min-height: 0;
+}
+.result-row > .search-select,
+.table-toolbar > .search-select {
+  margin-top: 0;
+}
+.table-toolbar > .search-select {
+  min-width: 170px;
+}
+.rich-toolbar .search-select {
+  margin: 0;
+}
+@media (max-width: 600px) {
+  .search-select .search-select__input-container input {
+    font-size: 16px !important;
+  }
 }

@@ -53,6 +53,7 @@ Nếu build thành công nhưng tất cả route trả 404: kiểm tra log có c
 - Chỉ tính công nợ từ khoản phải thu đã lập. Không suy nợ quá khứ từ ô trống; hồ sơ đã nghỉ giữ lịch sử.
 - Thu đủ từng tháng, có thể thu trước tối đa 24 tháng. Một giao dịch tiền được phân bổ cho nhiều tháng, không nhân ba tiền nhận. Mỗi tháng đều mặc định theo mức chung 400.000đ/võ sinh và cho nhập mức khác, kể cả các tháng đóng trước. Mức xác nhận sẽ cập nhật khoản phải thu để không tạo công nợ giả.
 - Không bảo lưu, học bù hoặc thanh toán từng phần.
+- Học phí & công nợ có danh sách võ sinh chưa đóng theo tháng, hiển thị liên hệ và nút thu phí. Võ sinh chưa có khoản phải thu được ghi rõ riêng, không tự tính thành công nợ; các khoản đã thanh toán/miễn không xuất hiện trong danh sách.
 - Form nguồn tiền có 5 nhóm: Học phí, Chi phí (Sân bãi / Lương trợ giảng / Dụng cụ / Khác), Tiền khác, Nhập hàng và Bán hàng. Học phí nhập tổng tiền và số tháng (1–24), phân bổ đều theo VND; tiền lẻ cộng vào các tháng đầu. Mặc định 400.000đ/tháng và có thể đổi tổng tiền.
 - Nhập hàng ghi chi phí riêng; Bán hàng ghi tổng tiền bán và số lượng, không nhập lại giá vốn để tránh tính hai lần. Giao dịch bán cũ có giá nhập gộp vẫn được giữ và chỉnh sửa. Không quản lý tồn kho.
 - Bán hàng lịch sử: chỉ có lãi/lỗ thuần; không suy ngược doanh thu/giá vốn. Tổng sổ không phải số dư tiền mặt hoặc lợi nhuận kế toán. Chưa có số dư quỹ đầu kỳ.
@@ -80,6 +81,8 @@ npm run build
 Bộ kiểm thử dùng dữ liệu giả độc lập, tập trung vào học phí đóng trước, chống thu trùng, hủy/điều chỉnh, mức tháng đầu, ngày quá hạn và kết quả lên đai. Kiểm tra trình duyệt và MongoDB thực tế được ghi trong `VALIDATION.md`.
 
 ## Cấp đai, lịch và logo
+
+- Các ô chọn trong dashboard, hộp thoại và công cụ soạn thảo cho phép nhập tìm kiếm theo cả label và value, không phân biệt hoa/thường và dấu tiếng Việt. Giá trị gửi form vẫn là value của lựa chọn.
 
 - Danh sách cấp đai được khai báo tập trung trong `src/lib/constants.ts`. Hồ sơ ban đầu và hồ sơ mới mặc định Nhập môn. Dữ liệu cũ thiếu cấp đai được chuẩn hóa khi đọc; không đặt lại cấp đai đã có kết quả thi.
 - Tất cả ô ngày/tháng dùng `react-datepicker` với locale tiếng Việt, định dạng dd/MM/yyyy hoặc MM/yyyy. Giá trị lưu vẫn là YYYY-MM-DD / YYYY-MM, không chuyển qua UTC để tránh lệch ngày. `DateRangeInput` dùng cùng thư viện, sẵn cho bộ lọc khoảng ngày sau này.

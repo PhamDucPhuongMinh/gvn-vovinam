@@ -1,4 +1,5 @@
 "use client";
+import SearchSelect from "./SearchSelect";
 import { useEffect, useRef, useState } from "react";
 import FieldLabel from "./FieldLabel";
 import dynamic from "next/dynamic";
@@ -154,7 +155,7 @@ export default function AdminDialog({
       if (e.key === "Tab") {
         const nodes = Array.from(
           ref.current?.querySelectorAll<HTMLElement>(
-            'button:not(:disabled),input:not([type=hidden]):not([style*="display: none"]),select,textarea,[href]',
+            'button:not(:disabled),input:not([type=hidden]):not([tabindex="-1"]):not([style*="display: none"]),select,textarea,[href]',
           ) || [],
         ).filter((n) => n.offsetParent !== null);
         const first = nodes[0],
@@ -397,14 +398,14 @@ export default function AdminDialog({
                 {input("joined", "Tháng tham gia", "month", currentMonth())}
                 <label>
                   <FieldLabel>Trạng thái</FieldLabel>
-                  <select
+                  <SearchSelect
                     required
                     name="status"
                     defaultValue={val("status", "active")}
                   >
                     <option value="active">Đang học</option>
                     <option value="inactive">Đã nghỉ</option>
-                  </select>
+                  </SearchSelect>
                 </label>
               </div>
               <div className="form-row">
@@ -418,7 +419,7 @@ export default function AdminDialog({
               <div className="form-row">
                 <label>
                   <FieldLabel>Cấp đai hiện tại</FieldLabel>
-                  <select
+                  <SearchSelect
                     required
                     name="belt"
                     defaultValue={val("belt", "Nhập môn")}
@@ -426,11 +427,11 @@ export default function AdminDialog({
                     {BELTS.map((b) => (
                       <option key={b}>{b}</option>
                     ))}
-                  </select>
+                  </SearchSelect>
                 </label>
                 <label>
                   Lớp học
-                  <select
+                  <SearchSelect
                     name="classId"
                     defaultValue={val("classId", s.classes[0]?.id || "")}
                   >
@@ -440,7 +441,7 @@ export default function AdminDialog({
                         {c.name}
                       </option>
                     ))}
-                  </select>
+                  </SearchSelect>
                 </label>
               </div>
               {area("notes", "Ghi chú")}
@@ -449,7 +450,7 @@ export default function AdminDialog({
           {(kind === "entry" || kind === "payment") && (
             <label>
               <FieldLabel>Nguồn tiền</FieldLabel>
-              <select
+              <SearchSelect
                 required
                 value={entryKind}
                 onChange={(e) => setEntryKind(e.target.value)}
@@ -459,7 +460,7 @@ export default function AdminDialog({
                 <option value="income">Tiền khác</option>
                 <option value="purchase">Nhập hàng</option>
                 <option value="sale">Bán hàng</option>
-              </select>
+              </SearchSelect>
             </label>
           )}
           {(kind === "payment" || kind === "entry") &&
@@ -467,14 +468,14 @@ export default function AdminDialog({
               <>
                 <label>
                   <FieldLabel>Võ sinh</FieldLabel>
-                  <select
+                  <SearchSelect
                     name="studentId"
                     value={payStudent}
                     onChange={(e) => setPayStudent(e.target.value)}
                     required
                   >
                     {studentOptions()}
-                  </select>
+                  </SearchSelect>
                 </label>
                 <div className="form-row">
                   <label>
@@ -554,12 +555,16 @@ export default function AdminDialog({
                 {entryKind === "expense" && (
                   <label>
                     <FieldLabel>Danh mục chi phí</FieldLabel>
-                    <select required name="category" defaultValue="Sân bãi">
+                    <SearchSelect
+                      required
+                      name="category"
+                      defaultValue="Sân bãi"
+                    >
                       <option>Sân bãi</option>
                       <option>Lương trợ giảng</option>
                       <option>Dụng cụ</option>
                       <option>Khác</option>
-                    </select>
+                    </SearchSelect>
                   </label>
                 )}
                 {input(
@@ -615,7 +620,7 @@ export default function AdminDialog({
               </div>
               <label>
                 <FieldLabel>Loại giao dịch</FieldLabel>
-                <select
+                <SearchSelect
                   required
                   value={entryKind}
                   disabled={
@@ -639,14 +644,14 @@ export default function AdminDialog({
                       {l}
                     </option>
                   ))}
-                </select>
+                </SearchSelect>
               </label>
               {input("description", "Nội dung")}
               {area("notes", "Ghi chú", 2)}
               {entryKind === "expense" ? (
                 <label>
                   <FieldLabel>Danh mục chi phí</FieldLabel>
-                  <select
+                  <SearchSelect
                     required
                     name="category"
                     defaultValue={String(item?.category || "Sân bãi")}
@@ -664,7 +669,7 @@ export default function AdminDialog({
                     ).map((category) => (
                       <option key={category}>{category}</option>
                     ))}
-                  </select>
+                  </SearchSelect>
                 </label>
               ) : (
                 input("category", "Danh mục")
@@ -673,13 +678,13 @@ export default function AdminDialog({
                 <>
                   <label>
                     <FieldLabel>Võ sinh</FieldLabel>
-                    <select
+                    <SearchSelect
                       value={editStudent}
                       onChange={(e) => setEditStudent(e.target.value)}
                       required
                     >
                       {studentOptions()}
-                    </select>
+                    </SearchSelect>
                   </label>
                   {allocations.map((a, i) => (
                     <div className="allocation-row" key={i}>
@@ -868,7 +873,7 @@ export default function AdminDialog({
               {input("title", "Chú thích")}
               <label>
                 <FieldLabel>Loại nội dung</FieldLabel>
-                <select
+                <SearchSelect
                   required
                   name="type"
                   value={mediaType}
@@ -876,7 +881,7 @@ export default function AdminDialog({
                 >
                   <option value="image">Ảnh</option>
                   <option value="video">Video (liên kết)</option>
-                </select>
+                </SearchSelect>
               </label>
               {mediaType === "video" ? (
                 <>
@@ -915,7 +920,7 @@ export default function AdminDialog({
               <h3>Kết quả võ sinh</h3>
               {results.map((r, i) => (
                 <div className="result-row" key={i}>
-                  <select
+                  <SearchSelect
                     aria-label={`Võ sinh ${i + 1}`}
                     value={r.studentId}
                     onChange={(e) =>
@@ -927,8 +932,8 @@ export default function AdminDialog({
                     }
                   >
                     {studentOptions()}
-                  </select>
-                  <select
+                  </SearchSelect>
+                  <SearchSelect
                     aria-label="Kết quả"
                     value={String(r.passed)}
                     onChange={(e) =>
@@ -947,12 +952,12 @@ export default function AdminDialog({
                   >
                     <option value="true">Đạt</option>
                     <option value="false">Không đạt</option>
-                  </select>
+                  </SearchSelect>
                   <label className="result-belt-field">
                     <FieldLabel required={r.passed}>
                       Cấp đai đạt được
                     </FieldLabel>
-                    <select
+                    <SearchSelect
                       aria-label="Cấp đai đạt được"
                       value={r.belt}
                       required={r.passed}
@@ -967,9 +972,9 @@ export default function AdminDialog({
                       {BELTS.map((b) => (
                         <option key={b}>{b}</option>
                       ))}
-                    </select>
+                    </SearchSelect>
                   </label>
-                  <select
+                  <SearchSelect
                     aria-label="Danh hiệu"
                     value={r.honor}
                     disabled={!r.passed}
@@ -984,7 +989,7 @@ export default function AdminDialog({
                     <option value="">Không danh hiệu</option>
                     <option>Á khoa</option>
                     <option>Thủ khoa</option>
-                  </select>
+                  </SearchSelect>
                   <button
                     type="button"
                     className="table-action"
