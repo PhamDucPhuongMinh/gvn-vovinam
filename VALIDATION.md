@@ -23,3 +23,9 @@ The supplied production log showed a successful Next.js build followed by upload
 
 - All application select controls now share a react-select wrapper with label/value search, Vietnamese accent normalization, form values and keyboard navigation. Browser QA on a temporary fixture verified searching by a value substring, choosing with Enter, submitting the original value and searching an accented label with unaccented input. The fixture was removed; no database writes were made.
 - The monthly unpaid list separates outstanding bills from eligible learners without bills, excludes paid/waived bills and future learners, and preserves outstanding debts for inactive learners. Automated coverage checks these rules.
+
+## Inactive learner billing visibility
+
+- Both monthly tables default to active learners; an explicit toggle reveals inactive learners' existing history/debts. Inactive learners without bills never appear as unbilled, regardless of their recorded leaving month.
+- New tuition selection excludes inactive learners unless they have an existing outstanding bill for the selected month. Existing paid records are preserved; no database mutations were made to repair display logic.
+- Regression coverage includes the month of departure, earlier/later months, unpaid history selection and excluding settled inactive records.

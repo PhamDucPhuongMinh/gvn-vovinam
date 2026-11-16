@@ -1,5 +1,6 @@
 "use client";
 import SearchSelect from "./SearchSelect";
+import { tuitionStudentOptions } from "@/lib/unpaid-students";
 import { useEffect, useRef, useState } from "react";
 import FieldLabel from "./FieldLabel";
 import dynamic from "next/dynamic";
@@ -218,13 +219,15 @@ export default function AdminDialog({
       </label>
     );
   }
-  function studentOptions() {
-    return s.students.map((st) => (
-      <option key={st.id} value={st.id}>
-        {st.name}
-        {st.status === "inactive" ? " · Đã nghỉ" : ""}
-      </option>
-    ));
+  function studentOptions(tuitionOnly = false) {
+    return (tuitionOnly ? tuitionStudentOptions(s, period) : s.students).map(
+      (st) => (
+        <option key={st.id} value={st.id}>
+          {st.name}
+          {st.status === "inactive" ? " · Đã nghỉ" : ""}
+        </option>
+      ),
+    );
   }
   function parseCsv() {
     try {
@@ -474,7 +477,7 @@ export default function AdminDialog({
                     onChange={(e) => setPayStudent(e.target.value)}
                     required
                   >
-                    {studentOptions()}
+                    {studentOptions(true)}
                   </SearchSelect>
                 </label>
                 <div className="form-row">

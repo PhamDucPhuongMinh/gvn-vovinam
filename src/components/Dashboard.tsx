@@ -148,6 +148,7 @@ export default function Dashboard() {
     [contentTab, setContentTab] = useState("posts"),
     [mobile, setMobile] = useState(false),
     [dialog, setDialog] = useState<DialogSpec | null>(null);
+  const [showInactiveBilling, setShowInactiveBilling] = useState(false);
   const close = useCallback(() => setDialog(null), []);
   const load = useCallback(async () => {
     const r = await fetch("/api/admin", { cache: "no-store" });
@@ -250,7 +251,11 @@ export default function Dashboard() {
     active = studentsByJoined.filter((st) => st.status === "active"),
     student = (id?: string) => s.students.find((st) => st.id === id);
   const monthBills = s.bills.filter((b) => b.month === period);
-  const unpaidLearners = unpaidStudents(s, period);
+  const unpaidLearners = unpaidStudents(s, period, showInactiveBilling);
+  const visibleMonthBills = monthBills.filter(
+    (bill) =>
+      showInactiveBilling || student(bill.studentId)?.status === "active",
+  );
   const unpaid = monthBills.filter((b) => outstanding(s, b) > 0);
   const leads = s.leads.filter((l) => l.createdAt.slice(0, 7) === period);
   const visibleStudents = studentsByJoined.filter(
@@ -807,8 +812,20 @@ export default function Dashboard() {
               <div className="admin-note">
                 Chỉ khoản phải thu đã lập mới được tính công nợ. Không suy công
                 nợ từ ô trống trong bảng cũ. Đóng trước nhiều tháng được phân bổ
-                theo từng tháng, tiền thực thu ghi theo ngày nhận.
+                theo từng tháng, tiền thực thu ghi theo ngày nhận. Tổng tiền ở
+                trên bao gồm toàn bộ khoản đã lập, kể cả lịch sử của võ sinh đã
+                nghỉ.
               </div>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={showInactiveBilling}
+                  onChange={(event) =>
+                    setShowInactiveBilling(event.target.checked)
+                  }
+                />
+                Hiện lịch sử / công nợ của võ sinh đã nghỉ
+              </label>
               <section className="panel">
                 <div className="panel-head">
                   <div>
@@ -839,6 +856,9 @@ export default function Dashboard() {
                             <tr key={learner.id}>
                               <td>
                                 <StudentName student={learner} />
+                                {learner.status === "inactive" && (
+                                  <Badge>Đã nghỉ · Công nợ cũ</Badge>
+                                )}
                               </td>
                               <td>
                                 {learner.parent || "—"}
@@ -924,7 +944,7 @@ export default function Dashboard() {
                     Lập khoản phải thu
                   </button>
                 </div>
-                {monthBills.length ? (
+                {visibleMonthBills.length ? (
                   <div className="table-wrap">
                     <table>
                       <thead>
@@ -938,12 +958,16 @@ export default function Dashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {monthBills.map((b) => {
+                        {visibleMonthBills.map((b) => {
                           const debt = outstanding(s, b);
                           return (
                             <tr key={b.id}>
                               <td>
                                 <StudentName student={student(b.studentId)} />
+                                {student(b.studentId)?.status ===
+                                  "inactive" && (
+                                  <Badge>Đã nghỉ · Lịch sử học phí</Badge>
+                                )}
                               </td>
                               <td>{money(b.amount)}</td>
                               <td>{money(paidAmount(s, b.id))}</td>
@@ -1008,8 +1032,8 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <Empty
-                    title="Chưa có khoản phải thu tháng này"
-                    description="Chọn Lập khoản phải thu để tạo cho võ sinh đang học. Tháng cũ chỉ hiển thị dữ liệu đã đối soát."
+                    title="Không có khoản phải thu phù hợp"
+                    description="Chọn Lập khoản phải thu để tạo cho võ sinh đang học, hoặc bật Hiện lịch sử / công nợ của võ sinh đã nghỉ để xem các khoản cũ."
                   />
                 )}
               </section>
