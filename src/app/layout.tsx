@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { readState } from "@/lib/store";
+import ToastProvider from "@/components/ToastProvider";
 import "react-datepicker/dist/react-datepicker.css";
 import "./globals.css";
 const siteMetadata: Metadata = {
@@ -31,7 +32,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <body>{children}</body>
+      <body>
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }

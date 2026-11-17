@@ -1,4 +1,7 @@
 "use client";
+import useSessionMonitor, { sessionExpired } from "./useSessionMonitor";
+import { useToast, useErrorToast } from "./ToastProvider";
+import SortableTable from "./SortableTable";
 import SearchSelect from "./SearchSelect";
 import { useCallback, useEffect, useState } from "react";
 import { unpaidStudents } from "@/lib/unpaid-students";
@@ -139,7 +142,6 @@ export default function Dashboard() {
   const [state, setState] = useState<ClubState | null>(null),
     [demo, setDemo] = useState(false),
     [error, setError] = useState(""),
-    [toast, setToast] = useState(""),
     [busy, setBusy] = useState(false);
   const [tab, setTab] = useState("overview"),
     [period, setPeriod] = useState(currentMonth()),
@@ -149,12 +151,19 @@ export default function Dashboard() {
     [mobile, setMobile] = useState(false),
     [dialog, setDialog] = useState<DialogSpec | null>(null);
   const [showInactiveBilling, setShowInactiveBilling] = useState(false);
+  const notify = useToast();
+  useErrorToast(error);
+  const checkSession = useSessionMonitor(() => {
+    setState(null);
+    setDialog(null);
+  });
+  const [classRoster, setClassRoster] = useState<string | null>(null);
   const close = useCallback(() => setDialog(null), []);
   const load = useCallback(async () => {
     const r = await fetch("/api/admin", { cache: "no-store" });
     if (r.status === 401) {
-      window.location.assign("/login");
-      return;
+      sessionExpired();
+      throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
     }
     const j = await r.json();
     if (!r.ok) throw new Error(j.error);
@@ -175,11 +184,6 @@ export default function Dashboard() {
     window.addEventListener("hashchange", hash);
     return () => window.removeEventListener("hashchange", hash);
   }, [load]);
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(""), 6000);
-    return () => clearTimeout(t);
-  }, [toast]);
   function navigate(id: string) {
     setTab(id);
     setSearch("");
@@ -191,15 +195,22 @@ export default function Dashboard() {
     setBusy(true);
     setError("");
     try {
+      if (!(await checkSession())) return false;
       const r = await fetch("/api/admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, data }),
       });
+      if (r.status === 401) {
+        setState(null);
+        setDialog(null);
+        sessionExpired();
+        return false;
+      }
       const j = await r.json();
       if (!r.ok) throw new Error(j.error);
       await load();
-      setToast("Đã lưu thay đổi.");
+      notify("Đã lưu thay đổi.", "success");
       return true;
     } catch (e) {
       setError((e as Error).message);
@@ -313,10 +324,11 @@ export default function Dashboard() {
   function studentsTable(rows: Student[], overview = false) {
     return (
       <div className="table-wrap">
-        <table>
+        <SortableTable>
           <thead>
             <tr>
               <th>Võ sinh</th>
+              <th>Lớp đang học</th>
               <th>Tham gia</th>
               <th>{overview ? "Học phí " + monthLabel(period) : "Cấp đai"}</th>
               <th>Trạng thái</th>
@@ -331,7 +343,13 @@ export default function Dashboard() {
                   <td>
                     <StudentName student={st} />
                   </td>
-                  <td>{monthLabel(st.joined)}</td>
+                  <td>
+                    {st.status === "active"
+                      ? s.classes.find((c) => c.id === st.classId)?.name ||
+                        "Chưa xếp lớp"
+                      : "Đã nghỉ"}
+                  </td>
+                  <td data-sort-value={st.joined}>{monthLabel(st.joined)}</td>
                   <td>
                     {overview ? (
                       <Badge
@@ -383,7 +401,7 @@ export default function Dashboard() {
               );
             })}
           </tbody>
-        </table>
+        </SortableTable>
         {!rows.length && (
           <Empty
             title="Không tìm thấy võ sinh"
@@ -620,11 +638,7 @@ export default function Dashboard() {
               </>
             </div>
           </div>
-          {error && (
-            <p className="error" role="alert">
-              {error}
-            </p>
-          )}
+
           {tab === "overview" && (
             <>
               <div className="stat-grid">
@@ -840,7 +854,7 @@ export default function Dashboard() {
                 </div>
                 {unpaidLearners.length ? (
                   <div className="table-wrap">
-                    <table>
+                    <SortableTable>
                       <thead>
                         <tr>
                           <th>Võ sinh</th>
@@ -916,7 +930,7 @@ export default function Dashboard() {
                           ),
                         )}
                       </tbody>
-                    </table>
+                    </SortableTable>
                   </div>
                 ) : (
                   <Empty
@@ -946,7 +960,7 @@ export default function Dashboard() {
                 </div>
                 {visibleMonthBills.length ? (
                   <div className="table-wrap">
-                    <table>
+                    <SortableTable>
                       <thead>
                         <tr>
                           <th>Võ sinh</th>
@@ -969,9 +983,16 @@ export default function Dashboard() {
                                   <Badge>Đã nghỉ · Lịch sử học phí</Badge>
                                 )}
                               </td>
-                              <td>{money(b.amount)}</td>
-                              <td>{money(paidAmount(s, b.id))}</td>
-                              <td className={debt ? "negative" : "muted"}>
+                              <td data-sort-value={b.amount}>
+                                {money(b.amount)}
+                              </td>
+                              <td data-sort-value={paidAmount(s, b.id)}>
+                                {money(paidAmount(s, b.id))}
+                              </td>
+                              <td
+                                className={debt ? "negative" : "muted"}
+                                data-sort-value={debt}
+                              >
                                 {money(debt)}
                               </td>
                               <td>
@@ -1028,7 +1049,7 @@ export default function Dashboard() {
                           );
                         })}
                       </tbody>
-                    </table>
+                    </SortableTable>
                   </div>
                 ) : (
                   <Empty
@@ -1083,7 +1104,7 @@ export default function Dashboard() {
                 </div>
                 {visibleEntries.length ? (
                   <div className="table-wrap">
-                    <table>
+                    <SortableTable>
                       <thead>
                         <tr>
                           <th>Ngày giao dịch</th>
@@ -1100,7 +1121,9 @@ export default function Dashboard() {
                             key={e.id}
                             style={{ opacity: e.voided ? 0.45 : 1 }}
                           >
-                            <td>{displayDate(e.date)}</td>
+                            <td data-sort-value={e.date}>
+                              {displayDate(e.date)}
+                            </td>
                             <td>
                               <b style={{ fontWeight: 500 }}>{e.description}</b>
                               {e.notes && (
@@ -1139,6 +1162,7 @@ export default function Dashboard() {
                             </td>
                             <td
                               className={`currency ${sourceValue(e) < 0 ? "negative" : "positive"}`}
+                              data-sort-value={sourceValue(e)}
                             >
                               {money(sourceValue(e))}
                             </td>
@@ -1182,7 +1206,7 @@ export default function Dashboard() {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </SortableTable>
                   </div>
                 ) : (
                   <Empty title="Không có giao dịch phù hợp" />
@@ -1191,37 +1215,68 @@ export default function Dashboard() {
             </>
           )}
           {tab === "classes" && (
-            <div className="content-grid">
-              {s.classes.map((c) => (
-                <article className="content-card" key={c.id}>
-                  <div>
-                    <span className="pill">LỚP HỌC</span>
-                    <h3 style={{ marginTop: 17 }}>{c.name}</h3>
-                    <p>
-                      <Clock3 size={14} style={{ verticalAlign: "middle" }} />{" "}
-                      {c.schedule}
-                    </p>
-                    <p>{c.location}</p>
-                    <p>Huấn luyện viên: {c.coach || "Chưa bổ sung"}</p>
-                    <p>
-                      {
-                        s.students.filter(
-                          (st) => st.classId === c.id && st.status === "active",
-                        ).length
-                      }{" "}
-                      võ sinh đang học
-                    </p>
+            <>
+              <div className="content-grid">
+                {s.classes.map((c) => (
+                  <article className="content-card" key={c.id}>
+                    <div>
+                      <span className="pill">LỚP HỌC</span>
+                      <h3 style={{ marginTop: 17 }}>{c.name}</h3>
+                      <p>
+                        <Clock3 size={14} style={{ verticalAlign: "middle" }} />{" "}
+                        {c.schedule}
+                      </p>
+                      <p>{c.location}</p>
+                      <p>Huấn luyện viên: {c.coach || "Chưa bổ sung"}</p>
+                      <p>
+                        {
+                          s.students.filter(
+                            (st) =>
+                              st.classId === c.id && st.status === "active",
+                          ).length
+                        }{" "}
+                        võ sinh đang học
+                      </p>
+                      <button
+                        className="btn outline"
+                        onClick={() => setClassRoster(c.id)}
+                      >
+                        Xem danh sách võ sinh
+                      </button>
+                      <button
+                        className="btn secondary"
+                        onClick={() => edit("class", c)}
+                      >
+                        <Pencil size={14} />
+                        Chỉnh sửa
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              {classRoster && (
+                <section className="panel" style={{ marginTop: 24 }}>
+                  <div className="panel-head">
+                    <div>
+                      <h2>
+                        Danh sách võ sinh ·{" "}
+                        {s.classes.find((c) => c.id === classRoster)?.name}
+                      </h2>
+                      <p>Bao gồm hồ sơ đã nghỉ, có ghi rõ trạng thái.</p>
+                    </div>
                     <button
-                      className="btn secondary"
-                      onClick={() => edit("class", c)}
+                      className="btn outline"
+                      onClick={() => setClassRoster(null)}
                     >
-                      <Pencil size={14} />
-                      Chỉnh sửa
+                      Đóng danh sách
                     </button>
                   </div>
-                </article>
-              ))}
-            </div>
+                  {studentsTable(
+                    studentsByJoined.filter((st) => st.classId === classRoster),
+                  )}
+                </section>
+              )}
+            </>
           )}
           {tab === "exams" && (
             <>
@@ -1255,7 +1310,7 @@ export default function Dashboard() {
                         </button>
                       </div>
                       <div className="table-wrap">
-                        <table>
+                        <SortableTable>
                           <thead>
                             <tr>
                               <th>Võ sinh</th>
@@ -1280,7 +1335,7 @@ export default function Dashboard() {
                               </tr>
                             ))}
                           </tbody>
-                        </table>
+                        </SortableTable>
                       </div>
                     </section>
                   ))
@@ -1300,7 +1355,7 @@ export default function Dashboard() {
                 />
               ) : (
                 <div className="table-wrap">
-                  <table>
+                  <SortableTable>
                     <thead>
                       <tr>
                         <th>Ngày đăng ký</th>
@@ -1314,7 +1369,9 @@ export default function Dashboard() {
                     <tbody>
                       {s.leads.map((l) => (
                         <tr key={l.id}>
-                          <td>{displayDate(l.createdAt.slice(0, 10))}</td>
+                          <td data-sort-value={l.createdAt.slice(0, 10)}>
+                            {displayDate(l.createdAt.slice(0, 10))}
+                          </td>
                           <td>
                             <b>{l.name}</b>
                             <br />
@@ -1378,7 +1435,7 @@ export default function Dashboard() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </SortableTable>
                 </div>
               )}
             </section>
@@ -1594,7 +1651,7 @@ export default function Dashboard() {
                   <h2>Học phí, công nợ và đăng ký theo tháng</h2>
                 </div>
                 <div className="table-wrap">
-                  <table>
+                  <SortableTable>
                     <thead>
                       <tr>
                         <th>Tháng</th>
@@ -1613,16 +1670,22 @@ export default function Dashboard() {
                         const v = monthSummary(s, p);
                         return (
                           <tr key={p}>
-                            <td>{monthLabel(p)}</td>
-                            <td>{money(v.tuition)}</td>
-                            <td>
+                            <td data-sort-value={p}>{monthLabel(p)}</td>
+                            <td data-sort-value={v.tuition}>
+                              {money(v.tuition)}
+                            </td>
+                            <td
+                              data-sort-value={s.bills
+                                .filter((b) => b.month === p)
+                                .reduce((a, b) => a + b.amount, 0)}
+                            >
                               {money(
                                 s.bills
                                   .filter((b) => b.month === p)
                                   .reduce((a, b) => a + b.amount, 0),
                               )}
                             </td>
-                            <td>{money(v.debt)}</td>
+                            <td data-sort-value={v.debt}>{money(v.debt)}</td>
                             <td>
                               {
                                 s.leads.filter(
@@ -1634,7 +1697,7 @@ export default function Dashboard() {
                         );
                       })}
                     </tbody>
-                  </table>
+                  </SortableTable>
                 </div>
               </section>
             </>
@@ -1803,7 +1866,7 @@ export default function Dashboard() {
                       <details className="audit-change">
                         <summary>Xem nội dung trước / sau chỉnh sửa</summary>
                         <div className="table-wrap">
-                          <table>
+                          <SortableTable>
                             <thead>
                               <tr>
                                 <th>Thông tin</th>
@@ -1871,7 +1934,7 @@ export default function Dashboard() {
                                 </>
                               )}
                             </tbody>
-                          </table>
+                          </SortableTable>
                         </div>
                       </details>
                     )}
@@ -1892,15 +1955,6 @@ export default function Dashboard() {
       {dialog && (
         <AdminDialog spec={dialog} state={s} close={close} save={save} />
       )}{" "}
-      {toast && (
-        <div className="toast" role="status">
-          <CheckCircle2
-            size={15}
-            style={{ verticalAlign: "middle", marginRight: 8 }}
-          />
-          {toast}
-        </div>
-      )}
     </div>
   );
 }

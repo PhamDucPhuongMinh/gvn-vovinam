@@ -3111,3 +3111,70 @@ tr:last-child td {
     font-size: 16px !important;
   }
 }
+
+.toast-stack {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 20000;
+  display: grid;
+  gap: 10px;
+  width: min(460px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.app-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #12304d;
+  color: #fff;
+  box-shadow: 0 8px 30px #1234;
+  pointer-events: auto;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.app-toast.error {
+  background: #9f2525;
+  border: 1px solid #efb4b4;
+}
+.app-toast.success {
+  background: #14633e;
+}
+.app-toast span {
+  flex: 1;
+}
+.app-toast button {
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  min-width: 24px;
+}
+.table-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.table-sort:hover {
+  color: var(--blue);
+}
+.table-sort:focus-visible {
+  outline: 2px solid #0063cd;
+  outline-offset: 4px;
+}
+th[aria-sort="ascending"],
+th[aria-sort="descending"] {
+  color: #0063cd;
+}

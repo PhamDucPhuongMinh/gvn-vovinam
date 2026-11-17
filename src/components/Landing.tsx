@@ -1,4 +1,5 @@
 "use client";
+import { useErrorToast } from "./ToastProvider";
 import Link from "next/link";
 import FieldLabel from "./FieldLabel";
 import VideoThumbnail from "./VideoThumbnail";
@@ -39,6 +40,7 @@ export default function Landing({
     [sent, setSent] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  useErrorToast(error);
   async function register(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);

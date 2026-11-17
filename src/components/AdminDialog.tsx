@@ -1,4 +1,5 @@
 "use client";
+import { useErrorToast } from "./ToastProvider";
 import SearchSelect from "./SearchSelect";
 import { tuitionStudentOptions } from "@/lib/unpaid-students";
 import { useEffect, useRef, useState } from "react";
@@ -36,6 +37,7 @@ export function ImageField({
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const file = useRef<HTMLInputElement>(null);
+  useErrorToast(error);
   async function upload(f: File) {
     setBusy(true);
     setError("");
@@ -141,6 +143,7 @@ export default function AdminDialog({
   );
   const [csv, setCsv] = useState(""),
     [preview, setPreview] = useState<Record<string, string>[]>([]);
+  useErrorToast(error);
   locked.current = busy || editorBusy;
   const val = (name: string, fallback: unknown = "") =>
     String(item?.[name] ?? fallback);
@@ -344,8 +347,6 @@ export default function AdminDialog({
       }
       const ok = await save(action, kind === "import" ? preview : data);
       if (ok) close();
-      else
-        setError("Chưa lưu được. Xem thông báo lỗi và kiểm tra lại thông tin.");
     } catch (e) {
       setError((e as Error).message);
     } finally {

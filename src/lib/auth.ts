@@ -18,19 +18,24 @@ function secret() {
   globals.demoSecret ||= randomBytes(32).toString("hex");
   return new TextEncoder().encode(globals.demoSecret);
 }
-export async function authenticated() {
+export async function getSession() {
   const token = (await cookies()).get("vovinam_session")?.value;
-  if (!token) return false;
+  if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret(), {
       algorithms: ["HS256"],
       issuer: "vovinam",
       audience: "admin",
     });
-    return payload.role === "admin";
+    return payload.role === "admin" && payload.exp
+      ? { expiresAt: payload.exp * 1000 }
+      : null;
   } catch {
-    return false;
+    return null;
   }
+}
+export async function authenticated() {
+  return !!(await getSession());
 }
 export async function requireAdmin() {
   if (!(await authenticated())) throw new Error("UNAUTHORIZED");
@@ -103,16 +108,14 @@ export async function rateLimit(request: Request, key: string, max: number) {
     await db
       .collection("rate_limits")
       .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-    const doc = await db
-      .collection("rate_limits")
-      .findOneAndUpdate(
-        { _id: id as never },
-        {
-          $inc: { count: 1 },
-          $setOnInsert: { expiresAt: new Date(Date.now() + 900000) },
-        },
-        { upsert: true, returnDocument: "after" },
-      );
+    const doc = await db.collection("rate_limits").findOneAndUpdate(
+      { _id: id as never },
+      {
+        $inc: { count: 1 },
+        $setOnInsert: { expiresAt: new Date(Date.now() + 900000) },
+      },
+      { upsert: true, returnDocument: "after" },
+    );
     if (doc && doc.count > max)
       throw new Error("Quá nhiều yêu cầu. Vui lòng thử lại sau 15 phút.");
   }

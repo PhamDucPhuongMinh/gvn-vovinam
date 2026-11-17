@@ -29,3 +29,9 @@ The supplied production log showed a successful Next.js build followed by upload
 - Both monthly tables default to active learners; an explicit toggle reveals inactive learners' existing history/debts. Inactive learners without bills never appear as unbilled, regardless of their recorded leaving month.
 - New tuition selection excludes inactive learners unless they have an existing outstanding bill for the selected month. Existing paid records are preserved; no database mutations were made to repair display logic.
 - Regression coverage includes the month of departure, earlier/later months, unpaid history selection and excluding settled inactive records.
+
+## Session checks, notifications, class rosters and table sorting
+
+- All 49 automated tests and the production build pass. Added sorting regressions for numeric VND, cross-year dates/months, names and selected cell values.
+- The actual local session API was checked with missing, valid, expired and incorrectly signed JWTs: 401 / 200 / 401 / 401, all with no-store responses. No tokens were printed and no database writes were performed.
+- Browser QA used a temporary isolated dashboard fixture. Verified descending learner order, class name cells, roster restricted to the chosen class, error toast visible above an open dialog while retaining form values, and redirect to login with an expiry notification when a simulated focus recheck returned 401. Temporary QA routes were removed before the final build.

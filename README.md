@@ -63,6 +63,11 @@ Nếu build thành công nhưng tất cả route trả 404: kiểm tra log có c
 
 ## Dữ liệu và an toàn truy cập
 
+- Dashboard kiểm tra phiên khi mở trang, quay lại tab/cửa sổ, khôi phục trang hoặc có mạng trở lại; kiểm tra thêm tại thời điểm token hết hạn và trước khi lưu. Phiên hết hạn chuyển về đăng nhập và báo rõ lý do. API `/api/auth/session` không đọc database, không trả token và không được cache.
+- Thông báo lỗi/success dùng toast chung nằm trên popup và menu chọn. Form lỗi không bị đóng, giữ dữ liệu để sửa.
+- Các bảng cho phép bấm tiêu đề cột để sắp xếp tăng/giảm; cột thao tác không sắp xếp. Số tiền và ngày/tháng được so sánh theo giá trị, không theo chuỗi hiển thị.
+- Danh sách võ sinh hiển thị lớp đang học. Mỗi lớp có nút “Xem danh sách võ sinh”, bao gồm các hồ sơ thuộc lớp và trạng thái đang học/đã nghỉ.
+
 - API quản trị xác thực bằng JWT HS256 trong cookie HttpOnly, SameSite Strict, Secure trên production; phiên 8 giờ. Kiểm tra Origin cho các thao tác ghi.
 - Giới hạn số lần đăng nhập và đăng ký theo IP/cửa sổ 15 phút; MongoDB lưu bộ đếm có TTL trên production. Netlify ưu tiên header IP do nền tảng cung cấp.
 - Dữ liệu cá nhân/tài chính không được trả về API công khai; nội dung chỉ xuất hiện công khai khi được xuất bản. Bài viết hỗ trợ nội dung HTML có định dạng qua Tiptap. HTML được lọc khi lưu và khi hiển thị, chỉ giữ các thẻ/thuộc tính định dạng được cho phép. Script, event handler và liên kết thực thi bị loại bỏ; iframe giới hạn ở YouTube/Vimeo. Bài viết cũ dạng văn bản vẫn được hiển thị đúng.

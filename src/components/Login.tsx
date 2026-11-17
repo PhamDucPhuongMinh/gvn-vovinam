@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useErrorToast } from "./ToastProvider";
 import FieldLabel from "./FieldLabel";
 import Link from "next/link";
 import Brand from "./Brand";
@@ -7,6 +8,14 @@ import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
 export default function Login({ demo, logo }: { demo: boolean; logo: string }) {
   const [error, setError] = useState(""),
     [loading, setLoading] = useState(false);
+  useErrorToast(error);
+  useEffect(() => {
+    if (
+      new URLSearchParams(window.location.search).get("reason") ===
+      "session-expired"
+    )
+      setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+  }, []);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);

@@ -1,4 +1,5 @@
 "use client";
+import { useErrorToast } from "./ToastProvider";
 import SearchSelect from "./SearchSelect";
 import { useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -124,6 +125,7 @@ export default function RichTextEditor({
     [alt, setAlt] = useState(""),
     [error, setError] = useState(""),
     [uploading, setUploading] = useState(false);
+  useErrorToast(error);
   const file = useRef<HTMLInputElement>(null),
     controller = useRef<AbortController | null>(null);
   const editor = useEditor({
