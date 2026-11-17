@@ -35,3 +35,8 @@ The supplied production log showed a successful Next.js build followed by upload
 - All 49 automated tests and the production build pass. Added sorting regressions for numeric VND, cross-year dates/months, names and selected cell values.
 - The actual local session API was checked with missing, valid, expired and incorrectly signed JWTs: 401 / 200 / 401 / 401, all with no-store responses. No tokens were printed and no database writes were performed.
 - Browser QA used a temporary isolated dashboard fixture. Verified descending learner order, class name cells, roster restricted to the chosen class, error toast visible above an open dialog while retaining form values, and redirect to login with an expiry notification when a simulated focus recheck returned 401. Temporary QA routes were removed before the final build.
+
+## Financial report redesign and class card actions
+
+- Replaced overlapping report summaries and the tuition/debt table with all-time revenue/cost/profit totals and a matching sortable monthly breakdown. Optional monthly scope uses accounting month consistently. Regression checks reconcile monthly rows to totals, ignore voids and cover legacy profit and differing transaction dates.
+- Browser QA with synthetic data verified all-time totals, monthly scope (including a negative profit), and equal-width stacked class actions with a measured 12px gap. Temporary fixtures were removed, and no database changes were made.

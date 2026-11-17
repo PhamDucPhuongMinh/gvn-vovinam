@@ -67,6 +67,7 @@ Nếu build thành công nhưng tất cả route trả 404: kiểm tra log có c
 - Thông báo lỗi/success dùng toast chung nằm trên popup và menu chọn. Form lỗi không bị đóng, giữ dữ liệu để sửa.
 - Các bảng cho phép bấm tiêu đề cột để sắp xếp tăng/giảm; cột thao tác không sắp xếp. Số tiền và ngày/tháng được so sánh theo giá trị, không theo chuỗi hiển thị.
 - Danh sách võ sinh hiển thị lớp đang học. Mỗi lớp có nút “Xem danh sách võ sinh”, bao gồm các hồ sơ thuộc lớp và trạng thái đang học/đã nghỉ.
+- Trang Báo cáo mặc định hiển thị tổng doanh thu, chi phí và lợi nhuận toàn bộ thời gian; có thể chuyển sang phạm vi theo tháng. Bảng chi tiết theo tháng dùng cùng phạm vi và tháng hạch toán với ba tổng, loại giao dịch đã hủy. Lợi nhuận bán hàng lịch sử được giải thích riêng khi dữ liệu chỉ có lãi/lỗ thuần.
 
 - API quản trị xác thực bằng JWT HS256 trong cookie HttpOnly, SameSite Strict, Secure trên production; phiên 8 giờ. Kiểm tra Origin cho các thao tác ghi.
 - Giới hạn số lần đăng nhập và đăng ký theo IP/cửa sổ 15 phút; MongoDB lưu bộ đếm có TTL trên production. Netlify ưu tiên header IP do nền tảng cung cấp.

@@ -1,6 +1,7 @@
 "use client";
 import useSessionMonitor, { sessionExpired } from "./useSessionMonitor";
 import { useToast, useErrorToast } from "./ToastProvider";
+import { financialReport } from "@/lib/financial-report";
 import SortableTable from "./SortableTable";
 import SearchSelect from "./SearchSelect";
 import { useCallback, useEffect, useState } from "react";
@@ -52,7 +53,6 @@ import {
 } from "@/lib/utils";
 import {
   monthSummary,
-  financialTotals,
   outstanding,
   paidAmount,
   sourceValue,
@@ -157,6 +157,7 @@ export default function Dashboard() {
     setState(null);
     setDialog(null);
   });
+  const [reportScope, setReportScope] = useState("all");
   const [classRoster, setClassRoster] = useState<string | null>(null);
   const close = useCallback(() => setDialog(null), []);
   const load = useCallback(async () => {
@@ -262,6 +263,10 @@ export default function Dashboard() {
     active = studentsByJoined.filter((st) => st.status === "active"),
     student = (id?: string) => s.students.find((st) => st.id === id);
   const monthBills = s.bills.filter((b) => b.month === period);
+  const report = financialReport(
+    s.entries,
+    reportScope === "month" ? period : undefined,
+  );
   const unpaidLearners = unpaidStudents(s, period, showInactiveBilling);
   const visibleMonthBills = monthBills.filter(
     (bill) =>
@@ -525,18 +530,19 @@ export default function Dashboard() {
               </p>
             </div>
             <div className="heading-actions">
-              {["overview", "billing", "finance", "reports"].includes(tab) && (
-                <label className="report-month-field">
-                  <FieldLabel>Tháng báo cáo</FieldLabel>
-                  <DateInput
-                    label="Tháng báo cáo"
-                    mode="month"
-                    value={period}
-                    onChange={(v) => v && setPeriod(v)}
-                    required
-                  />
-                </label>
-              )}
+              {["overview", "billing", "finance", "reports"].includes(tab) &&
+                (tab !== "reports" || reportScope === "month") && (
+                  <label className="report-month-field">
+                    <FieldLabel>Tháng báo cáo</FieldLabel>
+                    <DateInput
+                      label="Tháng báo cáo"
+                      mode="month"
+                      value={period}
+                      onChange={(v) => v && setPeriod(v)}
+                      required
+                    />
+                  </label>
+                )}
               <>
                 {tab === "overview" && (
                   <button
@@ -1218,7 +1224,7 @@ export default function Dashboard() {
             <>
               <div className="content-grid">
                 {s.classes.map((c) => (
-                  <article className="content-card" key={c.id}>
+                  <article className="content-card admin-class-card" key={c.id}>
                     <div>
                       <span className="pill">LỚP HỌC</span>
                       <h3 style={{ marginTop: 17 }}>{c.name}</h3>
@@ -1237,19 +1243,21 @@ export default function Dashboard() {
                         }{" "}
                         võ sinh đang học
                       </p>
-                      <button
-                        className="btn outline"
-                        onClick={() => setClassRoster(c.id)}
-                      >
-                        Xem danh sách võ sinh
-                      </button>
-                      <button
-                        className="btn secondary"
-                        onClick={() => edit("class", c)}
-                      >
-                        <Pencil size={14} />
-                        Chỉnh sửa
-                      </button>
+                      <div className="class-card-actions">
+                        <button
+                          className="btn outline"
+                          onClick={() => setClassRoster(c.id)}
+                        >
+                          Xem danh sách võ sinh
+                        </button>
+                        <button
+                          className="btn secondary"
+                          onClick={() => edit("class", c)}
+                        >
+                          <Pencil size={14} />
+                          Chỉnh sửa
+                        </button>
+                      </div>
                     </div>
                   </article>
                 ))}
@@ -1586,119 +1594,118 @@ export default function Dashboard() {
           )}
           {tab === "reports" && (
             <>
-              <div className="report-totals">
-                <div>
-                  <small>Doanh thu</small>
-                  <b>{money(summary.revenue)}</b>
-                </div>
-                <div>
-                  <small>Chi phí</small>
-                  <b>{money(summary.cost)}</b>
-                </div>
-                <div>
-                  <small>Lợi nhuận</small>
-                  <b>{money(summary.profit)}</b>
-                </div>
-              </div>
-              <div className="admin-note warning">
-                Dữ liệu bán hàng lịch sử chỉ có lợi nhuận, chưa đủ doanh thu và
-                chi phí gốc. Báo cáo sử dụng các khoản đã ghi nhận; lợi nhuận
-                không phải số dư tiền mặt.
-              </div>
               <section className="panel">
                 <div className="panel-head">
-                  <h2>Thu–chi theo ngày giao dịch · {monthLabel(period)}</h2>
+                  <div>
+                    <h2>Tổng quan tài chính</h2>
+                    <p>
+                      {reportScope === "all"
+                        ? "Toàn bộ thời gian"
+                        : `Tháng ${monthLabel(period)}`}{" "}
+                      · {report.count} giao dịch được ghi nhận
+                    </p>
+                  </div>
+                  <div className="report-scope">
+                    <label>
+                      Phạm vi báo cáo
+                      <SearchSelect
+                        aria-label="Phạm vi báo cáo"
+                        value={reportScope}
+                        onChange={(event) => setReportScope(event.target.value)}
+                      >
+                        <option value="all">Toàn bộ thời gian</option>
+                        <option value="month">Theo tháng</option>
+                      </SearchSelect>
+                    </label>
+                  </div>
                 </div>
                 <div className="panel-body">
-                  {(() => {
-                    const rows = s.entries.filter(
-                      (e) => !e.voided && e.date.startsWith(period),
-                    );
-                    const totals = financialTotals(rows);
-                    const incomplete =
-                      rows.some((e) => e.kind === "legacy_margin") ||
-                      s.entries.some(
-                        (e) => !e.voided && e.month === period && !e.date,
-                      );
-                    return (
-                      <>
-                        <div className="report-totals">
-                          <div>
-                            <small>Doanh thu</small>
-                            <b>{money(totals.revenue)}</b>
-                          </div>
-                          <div>
-                            <small>Chi phí</small>
-                            <b>{money(totals.cost)}</b>
-                          </div>
-                          <div>
-                            <small>Lợi nhuận</small>
-                            <b>{money(totals.profit)}</b>
-                          </div>
-                        </div>
-                        <p className="chart-foot">
-                          {incomplete
-                            ? "Doanh thu và chi phí chưa đầy đủ do dữ liệu bán hàng lịch sử chỉ có lợi nhuận. Giao dịch thiếu ngày chưa được tính."
-                            : "Doanh thu và chi phí của đơn bán mới được ghi nhận theo ngày giao dịch."}
-                        </p>
-                      </>
-                    );
-                  })()}
+                  <div className="report-totals">
+                    <div>
+                      <small>Tổng doanh thu</small>
+                      <b>{money(report.revenue)}</b>
+                      <span>Học phí, tiền khác và bán hàng</span>
+                    </div>
+                    <div>
+                      <small>Tổng chi phí</small>
+                      <b>{money(report.cost)}</b>
+                      <span>Chi phí hoạt động và nhập hàng</span>
+                    </div>
+                    <div>
+                      <small>Tổng lợi nhuận</small>
+                      <b className={report.profit < 0 ? "negative" : ""}>
+                        {money(report.profit)}
+                      </b>
+                      <span>
+                        Doanh thu trừ chi phí
+                        {report.hasLegacy ? ", cộng lợi nhuận lịch sử" : ""}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="chart-foot">
+                    Báo cáo theo tháng hạch toán của giao dịch; các giao dịch đã
+                    hủy không được tính.
+                  </p>
+                  {report.hasLegacy && (
+                    <div className="admin-note warning">
+                      Có dữ liệu bán hàng cũ chỉ lưu lợi nhuận:{" "}
+                      {money(report.legacyProfit)}. Khoản này được cộng riêng
+                      vào lợi nhuận, chưa có doanh thu và chi phí gốc để đối
+                      chiếu.
+                    </div>
+                  )}
                 </div>
               </section>
               <section className="panel">
                 <div className="panel-head">
-                  <h2>Học phí, công nợ và đăng ký theo tháng</h2>
+                  <div>
+                    <h2>Doanh thu – Chi phí – Lợi nhuận theo tháng</h2>
+                    <p>Cùng phạm vi và cách tính với các tổng phía trên.</p>
+                  </div>
                 </div>
-                <div className="table-wrap">
-                  <SortableTable>
-                    <thead>
-                      <tr>
-                        <th>Tháng</th>
-                        <th>Doanh thu học phí</th>
-                        <th>Phải thu đã lập</th>
-                        <th>Công nợ</th>
-                        <th>Đăng ký học thử mới</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Array.from({ length: 6 }, (_, i) => {
-                        const [y, m] = period.split("-").map(Number);
-                        const p = new Date(Date.UTC(y, m - 6 + i, 1))
-                          .toISOString()
-                          .slice(0, 7);
-                        const v = monthSummary(s, p);
-                        return (
-                          <tr key={p}>
-                            <td data-sort-value={p}>{monthLabel(p)}</td>
-                            <td data-sort-value={v.tuition}>
-                              {money(v.tuition)}
+                {report.rows.length ? (
+                  <div className="table-wrap">
+                    <SortableTable>
+                      <thead>
+                        <tr>
+                          <th>Tháng</th>
+                          <th>Doanh thu</th>
+                          <th>Chi phí</th>
+                          <th>Lợi nhuận</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {report.rows.map((row) => (
+                          <tr key={row.period}>
+                            <td data-sort-value={row.period}>
+                              {monthLabel(row.period)}
                             </td>
                             <td
-                              data-sort-value={s.bills
-                                .filter((b) => b.month === p)
-                                .reduce((a, b) => a + b.amount, 0)}
+                              className="currency"
+                              data-sort-value={row.revenue}
                             >
-                              {money(
-                                s.bills
-                                  .filter((b) => b.month === p)
-                                  .reduce((a, b) => a + b.amount, 0),
-                              )}
+                              {money(row.revenue)}
                             </td>
-                            <td data-sort-value={v.debt}>{money(v.debt)}</td>
-                            <td>
-                              {
-                                s.leads.filter(
-                                  (l) => l.createdAt.slice(0, 7) === p,
-                                ).length
-                              }
+                            <td className="currency" data-sort-value={row.cost}>
+                              {money(row.cost)}
+                            </td>
+                            <td
+                              className={`currency ${row.profit < 0 ? "negative" : "positive"}`}
+                              data-sort-value={row.profit}
+                            >
+                              {money(row.profit)}
                             </td>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </SortableTable>
-                </div>
+                        ))}
+                      </tbody>
+                    </SortableTable>
+                  </div>
+                ) : (
+                  <Empty
+                    title="Chưa có dữ liệu báo cáo"
+                    description="Thêm giao dịch hoặc chọn phạm vi thời gian khác để xem doanh thu, chi phí và lợi nhuận."
+                  />
+                )}
               </section>
             </>
           )}

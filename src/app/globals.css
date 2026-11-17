@@ -3178,3 +3178,50 @@ th[aria-sort="ascending"],
 th[aria-sort="descending"] {
   color: #0063cd;
 }
+
+.admin-class-card > div {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.class-card-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.class-card-actions .btn {
+  margin: 0;
+  width: 100%;
+  justify-content: center;
+}
+.report-scope {
+  width: 230px;
+  max-width: 100%;
+}
+.report-scope label {
+  margin-bottom: 0;
+}
+.report-totals > div > span {
+  font-size: 11px;
+  opacity: 0.75;
+  line-height: 1.5;
+}
+.report-totals .negative {
+  color: #b42318;
+}
+@media (max-width: 600px) {
+  .report-scope {
+    width: 100%;
+  }
+}
+
+.admin-class-card .pill {
+  align-self: flex-start;
+}
+.report-totals > div > span {
+  display: block;
+  margin-top: 10px;
+  color: var(--muted);
+}
